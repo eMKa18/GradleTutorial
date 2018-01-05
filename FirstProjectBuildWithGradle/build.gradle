@@ -1,0 +1,62 @@
+repositories {
+	mavenCentral()
+}
+
+apply plugin: 'java'
+
+dependencies {
+	compile 'org.apache.commons:commons-lang3:3.3.2'
+}
+
+sourceSets {
+	main.java.srcDir 'src/main'
+	test.java.srcDir 'src/test'
+}
+
+jar {
+	from configurations.compile.collect { zipTree it }
+	manifest.attributes 'Main-Class': 'net.emka.gradletutorial.Main'
+}
+
+task hello{ 
+	group 'greeting'
+	description 'Greets you'
+	
+	// configuration phase
+	println 'Hello from configuration phase!'
+
+	ext.greeting = 'Hey how\'s going?'
+	
+	//execution phase
+	doLast { println 'hello!' }
+	doLast { println 'Whats crackin?' }
+	doFirst { println 'Hey, I know this guy!' }
+	doLast { println "Greeting: $greeting" }
+}
+
+task run(type: JavaExec, dependsOn: classes) {
+	main 'net.emka.gradletutorial.Main'
+	classpath sourceSets.main.runtimeClasspath
+	args 'Hello World'
+}
+
+task runJar(type:Exec, dependsOn: jar) {
+	// runs our jar
+	executable 'java'
+	args '-jar', "$jar.archivePath", "Hello World"
+}
+
+task hello2 {
+	onlyIf { true }
+	println 'Hello2 from configuration phase!'
+} << {
+	println 'HELLO'
+}
+
+hello2.enabled = false
+
+task writeGreeting {
+	outputs.file file('greeting.txt')
+} << {
+	file('greeting.txt').text = 'Hello, fellow citizen!'
+}
